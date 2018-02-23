@@ -76,6 +76,21 @@ app.post("/blogs" ,function (req, res) {
 	});
 });
 
+//show blog post
+app.get("/blogs/:id", function( req,res ) {
+	console.log(req.params.id);
+	//Find and get selected blog post details.
+	Blog.findById(req.params.id ,function( error, blogPost ) {
+		if( error ) {
+			res.redirect("/blogs");
+			console.log(error);
+		} else {
+			//display details blog post
+			res.render("show",{ blog:blogPost } );
+		}
+	});
+});
+
 app.listen( port,ip ,function (){
 	console.dir(`Server is running at port ${ port }`);
 });
