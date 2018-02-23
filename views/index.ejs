@@ -1,9 +1,12 @@
 <% include ./partials/header %>
 <h1>List of Blog Posts</h1>
 <% blogs.forEach( function ( blog ) { %> 
-	<p><%= blog.title %></p>
-	<p> <img src="<%= blog.image %>" alt=""></p>
-	<p> <%= blog.content %></p>
-	<a href="/blogs/<%= blog._id %>" title="">Read More..</a>
+	<div>
+		<h2><%= blog.title %></h2>
+		<img src="<%= blog.image %>" alt="<%= blog.title %>">
+		<span><%= blog.createdAt.toDateString() %></span>
+		<p> <%= blog.content.substring(0,100) %> ...</p>
+		<a href="/blogs/<%= blog._id %>" title="">Read More..</a>
+	</div>
 <% }); %>
 <% include ./partials/footer %>

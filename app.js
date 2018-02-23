@@ -1,5 +1,6 @@
 var express  = require("express");
 var bodyParser = require("body-parser");
+var methodOverride = require('method-override')
 var mongoose = require("mongoose");
 
 var app = express();
@@ -15,8 +16,12 @@ app.set("view engine", "ejs");
 //set up path to static assests
 app.use(express.static("public"));
 
+// setup method overide for request
+app.use(methodOverride("_method"))
+
 //set the body parser for request
 app.use( bodyParser.urlencoded({extended: true}));
+
 
 // define schema for the blog
 var blogSchema = new mongoose.Schema({
@@ -28,19 +33,6 @@ var blogSchema = new mongoose.Schema({
 
 //create the model for mongo
 var Blog = mongoose.model( "Blog",blogSchema );
-
-// Blog.create({
-// 	title:'Day Hike in Muir Woods National Park',
-// 	image :'https://img.vimbly.com/images/full_photos/muir-woods-26.jpg',
-// 	content:'Muir Woods National Monument is part of California’s Golden Gate National Recreation Area, north of San Francisco. It’s known for its towering old-growth redwood trees. Trails wind among the trees to Cathedral Grove and Bohemian Grove, and along Redwood Creek. The Ben Johnson and Dipsea trails climb a hillside for views of the treetops, the Pacific Ocean and Mount Tamalpais in adjacent Mount Tamalpais State Park.'
-// },function( error, data ){
-// 	if( error ) {
-// 		console.log(error);
-// 	} else {
-// 		console.log('Blog post saved !');
-// 		console.log(data);
-// 	}
-// });
 
 //RESTFULL Routes
 app.get("/", function ( req, res ){
@@ -62,7 +54,7 @@ app.get("/blogs/new" ,function( req,res ) {
 	res.render("new");
 });
 
-//create post route 
+//Create post route 
 app.post("/blogs" ,function (req, res) {
 	//save new blog to mongo
 	Blog.create(req.body.blog , function( error,data ){
@@ -76,9 +68,8 @@ app.post("/blogs" ,function (req, res) {
 	});
 });
 
-//show blog post
+//Show blog post
 app.get("/blogs/:id", function( req,res ) {
-	console.log(req.params.id);
 	//Find and get selected blog post details.
 	Blog.findById(req.params.id ,function( error, blogPost ) {
 		if( error ) {
@@ -87,6 +78,47 @@ app.get("/blogs/:id", function( req,res ) {
 		} else {
 			//display details blog post
 			res.render("show",{ blog:blogPost } );
+		}
+	});
+});
+
+//Edit blog post route
+app.get("/blogs/:id/edit",function( req,res ){
+	console.log(req.params.id);
+	//Get the blog post related to given id
+	Blog.findById(req.params.id , function( error,blogPost ){
+		if(error){
+			console.log( error);
+			res.redirect("/blogs");
+		} else {
+			res.render( "edit" ,{ blog:blogPost});
+		}
+	});
+});
+
+
+//Update blog post route
+app.put("/blogs/:id",function( req,res ){
+	//Update the blog post in db
+	Blog.findByIdAndUpdate( req.params.id,req.body.blog,function( error,updatedPost){
+		if( error ) {
+			console.log(error);
+			res.redirect("/blogs");
+		}else{
+			res.redirect("/blogs/"+req.params.id);
+		}
+	});
+});
+
+//Delete blog post route
+app.delete("/blogs/:id", function( req,res ){
+	//Delete the post
+	Blog.findByIdAndRemove(req.params.id, function( error){
+		if( error) {
+			console.log(error);
+			res.redirect("/blogs");
+		} else {
+			res.redirect("/blogs");
 		}
 	});
 });
