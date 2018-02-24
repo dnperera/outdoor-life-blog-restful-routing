@@ -2,6 +2,7 @@ var express  = require("express");
 var bodyParser = require("body-parser");
 var methodOverride = require('method-override')
 var mongoose = require("mongoose");
+var expressSanitizer = require('express-sanitizer');
 
 var app = express();
 var ip = process.env.IP || '127.0.0.1';
@@ -22,6 +23,8 @@ app.use(methodOverride("_method"))
 //set the body parser for request
 app.use( bodyParser.urlencoded({extended: true}));
 
+// Mount express-sanitizer here
+app.use(expressSanitizer()); // this line follows bodyParser() instantiations
 
 // define schema for the blog
 var blogSchema = new mongoose.Schema({
@@ -56,6 +59,8 @@ app.get("/blogs/new" ,function( req,res ) {
 
 //Create post route 
 app.post("/blogs" ,function (req, res) {
+	//sanatize the content
+	req.body.blog.content = req.sanatize(req.body.blog.content);
 	//save new blog to mongo
 	Blog.create(req.body.blog , function( error,data ){
 		if( error ) {
@@ -84,7 +89,6 @@ app.get("/blogs/:id", function( req,res ) {
 
 //Edit blog post route
 app.get("/blogs/:id/edit",function( req,res ){
-	console.log(req.params.id);
 	//Get the blog post related to given id
 	Blog.findById(req.params.id , function( error,blogPost ){
 		if(error){
@@ -99,6 +103,9 @@ app.get("/blogs/:id/edit",function( req,res ){
 
 //Update blog post route
 app.put("/blogs/:id",function( req,res ){
+	//sanatize the content
+	req.body.blog.content = req.sanatize(req.body.blog.content);
+	
 	//Update the blog post in db
 	Blog.findByIdAndUpdate( req.params.id,req.body.blog,function( error,updatedPost){
 		if( error ) {
